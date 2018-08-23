@@ -9,17 +9,19 @@ module Sphere where
 import Vector
 import Hitable
 import Ray
-
+import Material
+import HitRecord
 
 
 data Sphere = Sphere {
     sphCenter :: !Vec3,
-    sphRadius :: !Double
+    sphRadius :: !Double,
+    sphMaterial :: Material
 }
 
 
 instance Hitable Sphere where
-    hit sphere@(Sphere center radius) r t_min t_max =
+    hit sphere@(Sphere center radius _) r t_min t_max =
         let oc = origin r - sphCenter sphere
             dirr         = direction r
             a            = dot dirr dirr

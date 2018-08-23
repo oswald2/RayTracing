@@ -1,11 +1,10 @@
 {-# LANGUAGE
     OverloadedStrings
 #-}
-module Ray
-where
+module Ray where
 
 
-import Vector
+import           Vector
 
 
 data Ray = Ray {
@@ -15,7 +14,7 @@ data Ray = Ray {
 
 
 origin :: Ray -> Vec3
-origin (Ray a _) = a 
+origin (Ray a _) = a
 
 direction :: Ray -> Vec3
 direction (Ray _ b) = b

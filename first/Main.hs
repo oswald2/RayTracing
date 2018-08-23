@@ -25,6 +25,7 @@ import           Hitable
 import           HitableList
 import           Sphere
 import           Camera
+import           Utils
 
 
 nx = 200
@@ -49,24 +50,18 @@ calc j i = mkColor (fromIntegral i / fromIntegral nx)
 calc :: Camera -> PureMT -> Int -> Int -> Color
 calc cam rand j i =
     let (v, _) = foldr calcVal (nullVector, rand) [1 .. ns]
-        v1 = v `divide` ns
-    in
-        mkColor (vecX v1) (vecY v1) (vecZ v1)
-    where
-        calcVal _ (c0, ra0) =
-            let
-                (v1, ra1) = randomVal ra0
-                (v2, ra2) = randomVal ra1
-                u = (fromIntegral i + v1) / fromIntegral nx
-                v = (fromIntegral j + v2) / fromIntegral ny
-                r = camGetRay cam u v
-            in
-                (c0 + color r world, ra2)
-                    
-randomVal :: PureMT -> (Double, PureMT)
-randomVal rand =
-    let (val, r) = randomInt64 rand
-    in  (fromIntegral val / fromIntegral (maxBound :: Int64), r)
+        v1     = v `divide` ns
+    in  mkColor (sqrt (vecX v1)) (sqrt (vecY v1)) (sqrt (vecZ v1))
+  where
+    calcVal _ (c0, ra0) =
+        let (v1, ra1)  = randomVal ra0
+            (v2, ra2)  = randomVal ra1
+            u          = (fromIntegral i + v1) / fromIntegral nx
+            v          = (fromIntegral j + v2) / fromIntegral ny
+            r          = camGetRay cam u v
+            (col, ra3) = color ra2 r world
+        in  (c0 + col, ra3)
+
 
 {-
 -- example 2
@@ -147,6 +142,7 @@ hitSphere !center !radius !r =
     in  if discriminant < 0 then -1.0 else (-b - sqrt discriminant) / (2.0 * a)
 -}
 
+{-}
 -- example4
 color :: Hitable a => Ray -> a -> Vec3
 color r x = case hit x r 0.0 (maxNonInfiniteFloat 0) of
@@ -163,6 +159,28 @@ color r x = case hit x r 0.0 (maxNonInfiniteFloat 0) of
             v2            = Vec3 0.5 0.7 1.0
             v3            = ((1.0 - t) `mult` v1) + (t `mult` v2)
         in  v3
+-}
+
+
+-- example5
+color :: Hitable a => PureMT -> Ray -> a -> (Vec3, PureMT)
+color rand r x = case hit x r 0.001 (maxNonInfiniteFloat 0) of
+    Just ht ->
+        let (randVec, ra1) = randomInUnitSphere rand
+            target         = htP ht + htNormal ht + randVec
+            (res, ra2)     = color ra1 (Ray (htP ht) (target - htP ht)) world
+        in  (0.4 `mult` res, ra2)
+    Nothing ->
+        let unitDirection = unitVector (direction r)
+            t             = 0.5 * (vecY unitDirection + 1.0)
+
+            v1            = Vec3 1.0 1.0 1.0
+            v2            = Vec3 0.5 0.7 1.0
+            v3            = ((1.0 - t) `mult` v1) + (t `mult` v2)
+        in  (v3, rand)
+
+
+
 
 
 maxNonInfiniteFloat :: Double -> Double
