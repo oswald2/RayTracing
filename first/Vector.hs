@@ -10,6 +10,9 @@ where
 data Vec3 = Vec3 !Double !Double !Double
 
 
+nullVector :: Vec3
+nullVector = Vec3 0 0 0
+
 vecX :: Vec3 -> Double
 vecX (Vec3 x _ _) = x
 
@@ -52,7 +55,7 @@ divide :: Vec3 -> Double -> Vec3
 divide (Vec3 x y z) t = Vec3 (x / t) (y / t) (z / t)
 
 unitVector :: Vec3 -> Vec3
-unitVector v@(Vec3 x y z) = v `divide` Vector.length v
+unitVector v = v `divide` Vector.length v
 
 
 instance Num Vec3 where

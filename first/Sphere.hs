@@ -23,9 +23,9 @@ instance Hitable Sphere where
         let oc = origin r - sphCenter sphere
             dirr         = direction r
             a            = dot dirr dirr
-            b            = 2.0 * dot oc dirr
+            b            = dot oc dirr
             c            = dot oc oc - radius * radius
-            discriminant = b * b - 4 * a * c
+            discriminant = b * b - a * c
         in  
         if discriminant > 0 
             then 
