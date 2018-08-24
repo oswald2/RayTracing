@@ -24,6 +24,9 @@ executable first
     , HitableList
     , Sphere
     , Camera
+    , HitRecord
+    , Material
+    , Utils
   -- other-extensions:
   build-depends:       base >=4.11 && <4.12
     , text

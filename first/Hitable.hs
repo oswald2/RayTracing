@@ -7,14 +7,13 @@ module Hitable where
 
 
 
-import Vector
 import Ray
 import HitRecord
 import Material
 
 
 class Hitable a where
-    hit :: a -> Ray -> Double -> Double -> Maybe HitRecord
-    material :: a -> Material
+    hit :: a -> Ray -> Double -> Double -> Maybe (HitRecord, Material)
 
-   
+class HasMaterial a where
+    material :: a -> Material

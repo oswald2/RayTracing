@@ -15,22 +15,25 @@ import           System.Random.Mersenne.Pure64
 
 
 data Material = 
-    Lambertian { lambAlbedo :: !Vec3 }
-    | Metal {metalAlbedo :: !Vec3 }
+    NoMaterial
+    | Lambertian { lambAlbedo :: !Vec3 }
+    | Metal {metalAlbedo :: !Vec3, metalFuzz :: !Double }
 
 
 scatter :: PureMT -> Ray -> HitRecord -> Material -> Maybe (Vec3, Ray, PureMT)
-scatter rand r ht Lambertian {..} =
+scatter _ _ _ NoMaterial = Nothing
+scatter rand _ ht Lambertian {..} =
     let (v1, ra1) = randomInUnitSphere rand
         target    = htP ht + htNormal ht + v1
     in  Just (lambAlbedo, Ray (htP ht) (target - htP ht), ra1)
 scatter rand r ht Metal {..} = 
     let reflected = reflect (unitVector (direction r)) (htNormal ht)
-        scattered = Ray (htP ht) reflected
+        (v1, rand1) = randomInUnitSphere rand
+        scattered = Ray (htP ht) (reflected + metalFuzz `mult` v1)
         attenuation = metalAlbedo
     in
         if dot (direction scattered) (htNormal ht) > 0 
-            then Just (attenuation, scattered, rand)
+            then Just (attenuation, scattered, rand1)
             else Nothing
 
 

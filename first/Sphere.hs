@@ -21,7 +21,7 @@ data Sphere = Sphere {
 
 
 instance Hitable Sphere where
-    hit sphere@(Sphere center radius _) r t_min t_max =
+    hit sphere@(Sphere center radius material) r t_min t_max =
         let oc = origin r - sphCenter sphere
             dirr         = direction r
             a            = dot dirr dirr
@@ -38,11 +38,14 @@ instance Hitable Sphere where
                     norm t = (p t - center) `divide` radius
                 in
                 if temp < t_max && temp > t_min 
-                    then Just (ht temp)
+                    then Just ((ht temp), material) 
                     else
                         if temp2 < t_max && temp2 > t_min 
-                            then Just (ht temp2)
+                            then Just ((ht temp2), material)
                             else Nothing
             else
                 Nothing
 
+
+instance HasMaterial Sphere where
+    material = sphMaterial
