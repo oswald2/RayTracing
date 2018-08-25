@@ -40,3 +40,14 @@ scatter rand r ht Metal {..} =
 reflect :: Vec3 -> Vec3 -> Vec3
 reflect v n = v - 2 * dot v n `mult` n
 
+
+refract :: Vec3 -> Vec3 -> Double -> Maybe Vec3
+refract v n ni_over_nt =
+    let uv = unitVector v
+        dt = dot uv n
+        discriminant = 1.0 - ni_over_nt * ni_over_nt * (1 - dt * dt)
+    in
+    if discriminant > 0 
+        then Just (ni_over_nt `mult` (uv - dt `mult` uv) - sqrt discriminant `mult` n)
+        else Nothing
+

@@ -121,7 +121,8 @@ hitSphere !center !radius !r =
         dirr = direction r
         a = dot dirr dirr
         b = 2.0 * dot oc dirr
-        c = dot oc oc - radius * radius
+        c = dot oc oc - radius * radiu    , GlasgowExts
+s
         discriminant = b * b - 4 * a * c
     in
     discriminant > 0
@@ -191,6 +192,7 @@ color r x = case hit x r 0.0 (maxr more details):
 
 
 
+
 {-r more details):
  - first-0.1.0.0 (exe:first) (configuration chang
 -- example5
@@ -214,14 +216,16 @@ color rand r x = case hit x r 0.001 (maxNonInfiniteFloat 0) of
 -- example6
 color :: Hitable a => PureMT -> Ray -> a -> Int -> (Vec3, PureMT)
 color rand r x !depth = case hit x r 0.001 (maxNonInfiniteFloat 0) of
-    Just (ht, mat) -> case scatter rand r ht mat of
-        Just (attenuation, scattered, rand1) ->
-            let (col, rand2) = color rand1 scattered world (depth + 1)
-            in  
-                if depth < maxDepth
-                    then (attenuation * col, rand2)
-                    else (Vec3 0 0 0, rand1)
-        Nothing -> (Vec3 0 0 0, rand)
+    Just (ht, mat) -> 
+            if depth < maxDepth
+                then 
+                    case scatter rand r ht mat of
+                        Just (attenuation, scattered, rand1) ->
+                            let (col, rand2) = color rand1 scattered world (depth + 1)
+                            in  
+                            (attenuation * col, rand2)
+                        Nothing -> (Vec3 0 0 0, rand)
+                else (Vec3 0 0 0, rand)
     Nothing ->
         let unitDirection = unitVector (direction r)
             t             = 0.5 * (vecY unitDirection + 1.0)
@@ -255,12 +259,12 @@ verticalV = Vec3 0.0 2.0 0.0
 originV :: Vec3
 originV = Vec3 0.0 0.0 0.0
 
-world :: [Sphere]
+world :: [HitObject]
 world =
-    [ Sphere (Vec3 0 0 -1)      0.5 (Lambertian (Vec3 0.8 0.3 0.3))
-    , Sphere (Vec3 0 -100.5 -1) 100 (Lambertian (Vec3 0.8 0.8 0))
-    , Sphere (Vec3 1 0 -1)      0.5 (Metal (Vec3 0.8 0.6 0.2) 0.3)
-    , Sphere (Vec3 -1 0 -1)     0.5 (Metal (Vec3 0.8 0.8 0.8) 1.0)
+    [ HitObject (Sphere (Vec3 0 0 -1)      0.5 (Lambertian (Vec3 0.8 0.3 0.3)))
+    , HitObject (Sphere (Vec3 0 -100.5 -1) 100 (Lambertian (Vec3 0.8 0.8 0)))
+    , HitObject (Sphere (Vec3 1 0 -1)      0.5 (Metal (Vec3 0.8 0.6 0.2) 0.3))
+    , HitObject (Sphere (Vec3 -1 0 -1)     0.5 (Metal (Vec3 0.8 0.8 0.8) 1.0))
     ]
 
 

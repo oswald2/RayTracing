@@ -2,6 +2,8 @@
     OverloadedStrings
     , BangPatterns
     , NegativeLiterals
+    , ExistentialQuantification
+    , FlexibleInstances
 #-}
 module HitableList where
 
@@ -12,8 +14,7 @@ import           HitRecord
 import           Material
 
 
-
-instance (Hitable a, HasMaterial a) => Hitable [a] where
+instance Hitable [HitObject] where
     hit ls r t_min t_max =
         let (res, _) = foldr calc (Nothing, t_max) ls
         in
