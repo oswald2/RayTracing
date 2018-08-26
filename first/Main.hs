@@ -6,12 +6,14 @@
 module Main where
 
 
+import qualified Data.Text.Lazy as T
 import qualified Data.Text.Lazy.IO             as T
 
 import           Data.Text.Lazy.Builder
 import           Data.Text.Lazy.Builder.Int
 
 import           System.Random.Mersenne.Pure64
+import           System.IO
 
 import           Vector
 import           Color
@@ -23,8 +25,8 @@ import           Camera
 import           Material
 
 
-nx = 200
-ny = 100
+nx = 800
+ny = 400
 ns = 100
 maxDepth = 50
 
@@ -256,6 +258,7 @@ verticalV = Vec3 0.0 2.0 0.0
 originV :: Vec3
 originV = Vec3 0.0 0.0 0.0
 
+
 world :: [HitObject]
 world =
     [ HitObject
@@ -269,6 +272,21 @@ world =
     ]
 
 
+{-
+world :: [HitObject]
+world
+    = let r = cos (pi / 4)
+      in  [ HitObject
+              (Sphere (Vec3 (-r) 0 -1) r (Material (Lambertian (Vec3 0 0 1))))
+          , HitObject
+              (Sphere (Vec3 r 0 -1) r (Material (Lambertian (Vec3 1 0 0))))
+          ]
+-}
+
+--camera = defaultCamera
+--camera = newCamera 90 (fromIntegral nx / fromIntegral ny)
+camera = newCamera (Vec3 -2 2 1) (Vec3 0 0 -1) (Vec3 0 1 0) 90 (fromIntegral nx / fromIntegral ny)
+
 
 main :: IO ()
 main = do
@@ -280,7 +298,7 @@ main = do
                 <> sp
                 <> decimal ny
                 <> fromText "\n255\n"
-                <> valueContent (values defaultCamera rand)
+                <> valueContent (values camera rand)
 
 
         sp = singleton ' '
@@ -291,5 +309,5 @@ main = do
         lineToBuilder :: [Color] -> Builder
         lineToBuilder = mconcat . map colorToBuilder
 
-
+    T.hPutStrLn stderr (T.pack (show camera))
     T.putStrLn (toLazyText content)

@@ -3,7 +3,14 @@
     , BangPatterns
     , NegativeLiterals
 #-}
-module Camera where
+module Camera 
+    (
+        Camera
+        , camGetRay
+        , defaultCamera
+        , newCamera
+    )
+where
 
 
 
@@ -12,11 +19,11 @@ import Ray
 
 
 data Camera = Camera {
-    camOrigin :: Vec3,
-    camLowerLeftCorner :: Vec3,
-    camHorizontal :: Vec3,
-    camVertical :: Vec3
-}   
+    camOrigin :: !Vec3,
+    camLowerLeftCorner :: !Vec3,
+    camHorizontal :: !Vec3,
+    camVertical :: !Vec3
+} deriving Show
 
 
 defaultCamera :: Camera
@@ -27,9 +34,25 @@ defaultCamera = Camera {
         camVertical = Vec3 0 2 0
     }
 
+newCamera :: Vec3 -> Vec3 -> Vec3 -> Double -> Double -> Camera
+newCamera lookfrom lookat vup vfov aspect = 
+    let theta = vfov * pi / 180
+        !halfHeight = tan (theta / 2.0)
+        !halfWidth = aspect * halfHeight
+        w = unitVector (lookfrom - lookat)
+        u = unitVector (cross vup w)
+        v = cross w u
+    in
+        Camera {
+            camOrigin = lookfrom,
+            camLowerLeftCorner = lookfrom - (halfWidth `mult` u) - (halfHeight `mult` v) - w,
+            camHorizontal = 2 * halfWidth `mult` u,
+            camVertical = 2 * halfHeight `mult` v
+        }
+
 camGetRay :: Camera -> Double -> Double -> Ray 
-camGetRay cam u v =
+camGetRay cam s t =
     Ray (camOrigin cam) 
-        (camLowerLeftCorner cam + u `mult` camHorizontal cam + 
-         v `mult` camVertical cam - camOrigin cam)
+        (camLowerLeftCorner cam + s `mult` camHorizontal cam + 
+         t `mult` camVertical cam - camOrigin cam)
 
