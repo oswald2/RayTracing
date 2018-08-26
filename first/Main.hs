@@ -20,7 +20,6 @@ import           Hitable
 import           HitableList                    ( )
 import           Sphere
 import           Camera
-import           Utils
 import           Material
 
 
@@ -73,8 +72,8 @@ calc cam rand j i =
     in  mkColor (sqrt (vecX v1)) (sqrt (vecY v1)) (sqrt (vecZ v1))
   where
     calcVal _ (c0, ra0) =
-        let (v1, ra1)  = randomVal ra0
-            (v2, ra2)  = randomVal ra1
+        let (v1, ra1)  = randomDouble ra0
+            (v2, ra2)  = randomDouble ra1
             u          = (fromIntegral i + v1) / fromIntegral nx
             v          = (fromIntegral j + v2) / fromIntegral ny
             r          = camGetRay cam u v
@@ -180,7 +179,8 @@ color r x = case hit x r 0.0 (maxr more details):
                                 ((vecY (htNormal ht)) + 1)
                                 ((vecZ (htNormal ht)) + 1)
         in  v
-    Nothing ->
+    Nothing ->        Nothing -> (Vec3 0 0 0, rand)
+
         let unitDirection = unitVector (direction r)
             t             = 0.5 * (vecY unitDirection + 1.0)
 
@@ -216,16 +216,13 @@ color rand r x = case hit x r 0.001 (maxNonInfiniteFloat 0) of
 -- example6
 color :: Hitable a => PureMT -> Ray -> a -> Int -> (Vec3, PureMT)
 color rand r x !depth = case hit x r 0.001 (maxNonInfiniteFloat 0) of
-    Just (ht, mat) -> 
-            if depth < maxDepth
-                then 
-                    case scatter rand r ht mat of
-                        Just (attenuation, scattered, rand1) ->
-                            let (col, rand2) = color rand1 scattered world (depth + 1)
-                            in  
-                            (attenuation * col, rand2)
-                        Nothing -> (Vec3 0 0 0, rand)
-                else (Vec3 0 0 0, rand)
+    Just (ht, mat) -> if depth < maxDepth
+        then case scatter rand r ht mat of
+            Just (attenuation, scattered, rand1) ->
+                let (col, rand2) = color rand1 scattered world (depth + 1)
+                in  (attenuation * col, rand2)
+            Nothing -> (Vec3 0 0 0, rand)
+        else (Vec3 0 0 0, rand)
     Nothing ->
         let unitDirection = unitVector (direction r)
             t             = 0.5 * (vecY unitDirection + 1.0)
@@ -261,10 +258,14 @@ originV = Vec3 0.0 0.0 0.0
 
 world :: [HitObject]
 world =
-    [ HitObject (Sphere (Vec3 0 0 -1)      0.5 (Lambertian (Vec3 0.8 0.3 0.3)))
-    , HitObject (Sphere (Vec3 0 -100.5 -1) 100 (Lambertian (Vec3 0.8 0.8 0)))
-    , HitObject (Sphere (Vec3 1 0 -1)      0.5 (Metal (Vec3 0.8 0.6 0.2) 0.3))
-    , HitObject (Sphere (Vec3 -1 0 -1)     0.5 (Metal (Vec3 0.8 0.8 0.8) 1.0))
+    [ HitObject
+        (Sphere (Vec3 0 0 -1) 0.5 (Material (Lambertian (Vec3 0.8 0.3 0.3))))
+    , HitObject
+        (Sphere (Vec3 0 -100.5 -1) 100 (Material (Lambertian (Vec3 0.8 0.8 0))))
+    , HitObject
+        (Sphere (Vec3 1 0 -1) 0.5 (Material (Metal (Vec3 0.8 0.6 0.2) 0.3)))
+    , HitObject (Sphere (Vec3 -1 0 -1) 0.5 (Material (Dielectric 1.5)))
+    , HitObject (Sphere (Vec3 -1 0 -1) -0.45 (Material (Dielectric 1.5)))
     ]
 
 
