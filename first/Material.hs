@@ -38,13 +38,20 @@ instance MaterialC NoMaterial where
 
 
 
-data MaterialLambertian = Lambertian { lambAlbedo :: !Vec3 }
+data MaterialLambertian = Lambertian { lambAlbedo :: !Vec3, lambRoughness :: !Double }
 
 instance MaterialC MaterialLambertian where
-    scatter rand _ ht Lambertian {..} =
-        let (v1, ra1) = randomInUnitSphere rand
-            target    = htP ht + htNormal ht + v1
-        in  Just (lambAlbedo, Ray (htP ht) (target - htP ht), ra1)
+    scatter rand r ht Lambertian {..} =
+        let norm = htNormal ht
+            dir = direction r
+            !cos = saturate $ dot (unitVector norm) (unitVector (negate dir))
+            (v1, ra1) = randomInUnitSphere rand
+            (v2, ra2) = randomDouble ra1
+            (v3, ra3) = randomInUnitSphere ra2
+            fresnel = schlick cos 0.04 
+            bounce = if v2 > fresnel then norm + v1 else 
+                reflect dir norm + lambRoughness `mult` v3
+        in  Just (lambAlbedo, bounce, ra3)
     
 
 data MaterialMetal = Metal {metalAlbedo :: !Vec3, metalFuzz :: !Double }        

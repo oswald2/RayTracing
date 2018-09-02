@@ -18,5 +18,6 @@ randomInUnitSphere rand = worker rand
         in  if squared_length p >= 1.0 then worker r3 else (p, r3)
 
 
-
+saturate :: Double -> Double
+saturate x = max (min x 0.0) 1.0
 
