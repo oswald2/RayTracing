@@ -58,7 +58,8 @@ instance MaterialC MaterialMetal where
         in
             if dot (direction scattered) (htNormal ht) > 0 
                 then Just (attenuation, scattered, rand1)
-                else Nothing
+                -- else Nothing
+                else Just (attenuation, scattered, rand1)
     
 
 

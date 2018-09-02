@@ -266,7 +266,7 @@ world =
     , HitObject
         (Sphere (Vec3 0 -100.5 -1) 100 (Material (Lambertian (Vec3 0.8 0.8 0))))
     , HitObject
-        (Sphere (Vec3 1 0 -1) 0.5 (Material (Metal (Vec3 0.8 0.6 0.2) 0.3)))
+        (Sphere (Vec3 1 0 -1) 0.5 (Material (Metal (Vec3 0.8 0.6 0.2) 0.0)))
     , HitObject (Sphere (Vec3 -1 0 -1) 0.5 (Material (Dielectric 1.5)))
     , HitObject (Sphere (Vec3 -1 0 -1) -0.45 (Material (Dielectric 1.5)))
     ]
