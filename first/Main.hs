@@ -283,9 +283,9 @@ world
           ]
 -}
 
---camera = defaultCamera
+camera = defaultCamera
 --camera = newCamera 90 (fromIntegral nx / fromIntegral ny)
-camera = newCamera (Vec3 -2 2 1) (Vec3 0 0 -1) (Vec3 0 1 0) 90 (fromIntegral nx / fromIntegral ny)
+--camera = newCamera (Vec3 -2 2 1) (Vec3 0 0 -1) (Vec3 0 1 0) 90 (fromIntegral nx / fromIntegral ny)
 
 
 main :: IO ()
