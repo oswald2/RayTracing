@@ -42,10 +42,10 @@ dot (Vec3 x1 y1 z1) (Vec3 x2 y2 z2) =
     x1 * x2 + y1 * y2 + z1 * z2
 
 cross :: Vec3 -> Vec3 -> Vec3
-cross (Vec3 a1 a2 a3) (Vec3 b1 b2 b3) = 
-    Vec3 (a2 * b3 - a3 * b2)
-         (negate (a1 * b3 - a3 * b1))
-         (a1 * b2 - a2 * b1)
+cross (Vec3 x1 y1 z1) (Vec3 x2 y2 z2) = 
+    Vec3 (y1 * z2 - z1 * y2)
+         (-(x1 * z2 - z1 * x2))
+         (x1 * y2 - y1 * x2)
     
 
 mult :: Double -> Vec3 -> Vec3

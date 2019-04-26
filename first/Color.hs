@@ -10,6 +10,8 @@ import Data.Word
 import Data.Text.Lazy.Builder
 import Data.Text.Lazy.Builder.Int
 
+import Vector
+
 
 data Color = Color !Word8 !Word8 !Word8
 
@@ -24,3 +26,7 @@ colorToBuilder (Color r g b) =
     let sp = singleton ' '
     in
     decimal r <> sp <> decimal g <> sp <> decimal b <> singleton '\n'
+
+vecToColor :: Vector -> Color
+vecToColor v = mkColor (vecX v) (vecY v) (vecZ v)
+
