@@ -15,8 +15,14 @@ import           Utils
 import           System.Random.Mersenne.Pure64
 
 
+data ScatterRecord = ScatterRecord {
+    srAttenuation :: Vec3
+    , srScattered :: Ray
+}
+
+
 class MaterialC a where
-    scatter :: PureMT -> Ray -> HitRecord -> a -> Maybe (Vec3, Ray, PureMT)
+    scatter :: PureMT -> Ray -> HitRecord -> a -> Maybe (ScatterRecord, PureMT)
 
 
 data Material = forall a. MaterialC a => Material a
@@ -25,49 +31,60 @@ data Material = forall a. MaterialC a => Material a
 instance MaterialC Material where
     scatter rand r rec (Material x) = scatter rand r rec x
 
--- data Material = 
---     NoMaterial
---     | Lambertian { lambAlbedo :: !Vec3 }
---     | Metal {metalAlbedo :: !Vec3, metalFuzz :: !Double }
 
+-- data NoMaterial = NoMaterial
 
-data NoMaterial = NoMaterial
-
-instance MaterialC NoMaterial where
-    scatter _ _ _ NoMaterial = Nothing
+-- instance MaterialC NoMaterial where
+--     scatter _ _ _ NoMaterial = Nothing
 
 
 
-data MaterialLambertian = Lambertian { lambAlbedo :: !Vec3, lambRoughness :: !Double }
+data MaterialLambertian = Lambertian { lambAlbedo :: !Vec3 {-, lambRoughness :: !Double-} }
 
 instance MaterialC MaterialLambertian where
-    scatter rand r ht Lambertian {..} =
-        let norm = htNormal ht
-            dir = direction r
-            !cos = saturate $ dot (unitVector norm) (unitVector (negate dir))
+    -- scatter rand rIn hitRecord Lambertian {..} =
+    --     let norm = htNormal hitRecord
+    --         dir = direction rIn
+    --         !cos = saturate $ dot (unitVector norm) (unitVector (negate dir))
+    --         (v1, ra1) = randomInUnitSphere rand
+    --         (v2, ra2) = randomDouble ra1
+    --         (v3, ra3) = randomInUnitSphere ra2
+    --         fresnel = schlick cos 0.04 
+    --         bounce = if v2 > fresnel then norm + v1 else 
+    --             reflect dir norm + lambRoughness `mult` v3
+    --         scatterRec = ScatterRecord lambAlbedo bounce
+    --     in  Just (scatterRec, ra3)
+    scatter rand _rIn hitRecord Lambertian {..} =
+        let target = htP hitRecord + htNormal hitRecord + v1
             (v1, ra1) = randomInUnitSphere rand
-            (v2, ra2) = randomDouble ra1
-            (v3, ra3) = randomInUnitSphere ra2
-            fresnel = schlick cos 0.04 
-            bounce = if v2 > fresnel then norm + v1 else 
-                reflect dir norm + lambRoughness `mult` v3
-        in  Just (lambAlbedo, bounce, ra3)
+            r = Ray (htP hitRecord) (target - htP hitRecord)
+            scatterRec = ScatterRecord lambAlbedo r
+        in  Just (scatterRec, ra1)
+
     
 
 data MaterialMetal = Metal {metalAlbedo :: !Vec3, metalFuzz :: !Double }        
 
 instance MaterialC MaterialMetal where
-    scatter rand r ht Metal {..} = 
-        let reflected = reflect (unitVector (direction r)) (htNormal ht)
-            (v1, rand1) = randomInUnitSphere rand
-            scattered = Ray (htP ht) (reflected + metalFuzz `mult` v1)
-            attenuation = metalAlbedo
+    -- scatter rand r ht Metal {..} = 
+    --     let reflected = reflect (unitVector (direction r)) (htNormal ht)
+    --         (v1, rand1) = randomInUnitSphere rand
+    --         scattered = Ray (htP ht) (reflected + metalFuzz `mult` v1)
+    --         attenuation = metalAlbedo
+    --     in
+    --         if dot (direction scattered) (htNormal ht) > 0 
+    --             then Just (attenuation, scattered, rand1)
+    --             -- else Nothing
+    --             else Just (attenuation, scattered, rand1)
+    scatter rand rIn hitRecord Metal {..} = 
+        let reflected = reflect (unitVector (direction rIn)) (htNormal hitRecord)
+            --(v1, rand1) = randomInUnitSphere rand
+            scattered = Ray (htP hitRecord) (reflected {-+ metalFuzz `mult` v1-})
         in
-            if dot (direction scattered) (htNormal ht) > 0 
-                then Just (attenuation, scattered, rand1)
-                -- else Nothing
-                else Just (attenuation, scattered, rand1)
-    
+            if dot (direction scattered) (htNormal hitRecord) > 0 
+                then Just ((ScatterRecord metalAlbedo scattered), rand)
+                else Nothing
+                
 
 
 reflect :: Vec3 -> Vec3 -> Vec3
@@ -85,25 +102,25 @@ refract !v !n !ni_over_nt =
         else Nothing
 
 
-data MaterialDielectric = Dielectric { diecRefIdx :: Double }
+-- data MaterialDielectric = Dielectric { diecRefIdx :: Double }
 
-instance MaterialC MaterialDielectric where
-    scatter rand r rec Dielectric {..} = 
-        let reflected = reflect (direction r) (htNormal rec)
-            attenuation = Vec3 1 1 1
-            dtp = dot (direction r) (htNormal rec) / Vector.length (direction r)
-            (!outwardNormal, !niOverNt, !cosine) = if dot (direction r) (htNormal rec) > 0
-                then (negate (htNormal rec), diecRefIdx, diecRefIdx * dtp)
-                else (htNormal rec, 1.0 / diecRefIdx, negate dtp)
-            refracted' = refract (direction r) outwardNormal niOverNt
-            (reflectProb, refracted) = case refracted' of 
-                Just r -> (schlick cosine diecRefIdx, r)
-                Nothing -> (2.0, Vec3 0 0 0)
-            (v1, rand1) = randomDouble rand
-        in
-            if v1 < reflectProb 
-                then Just (attenuation, Ray (htP rec) reflected, rand1)
-                else Just (attenuation, Ray (htP rec) refracted, rand1)
+-- instance MaterialC MaterialDielectric where
+--     scatter rand r rec Dielectric {..} = 
+--         let reflected = reflect (direction r) (htNormal rec)
+--             attenuation = Vec3 1 1 1
+--             dtp = dot (direction r) (htNormal rec) / Vector.length (direction r)
+--             (!outwardNormal, !niOverNt, !cosine) = if dot (direction r) (htNormal rec) > 0
+--                 then (negate (htNormal rec), diecRefIdx, diecRefIdx * dtp)
+--                 else (htNormal rec, 1.0 / diecRefIdx, negate dtp)
+--             refracted' = refract (direction r) outwardNormal niOverNt
+--             (reflectProb, refracted) = case refracted' of 
+--                 Just r -> (schlick cosine diecRefIdx, r)
+--                 Nothing -> (2.0, Vec3 0 0 0)
+--             (v1, rand1) = randomDouble rand
+--         in
+--             if v1 < reflectProb 
+--                 then Just (attenuation, Ray (htP rec) reflected, rand1)
+--                 else Just (attenuation, Ray (htP rec) refracted, rand1)
 
 
 

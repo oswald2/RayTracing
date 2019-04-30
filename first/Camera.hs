@@ -54,5 +54,5 @@ camGetRay :: Camera -> Double -> Double -> Ray
 camGetRay cam s t =
     Ray (camOrigin cam) 
         (camLowerLeftCorner cam + s `mult` camHorizontal cam + 
-         t `mult` camVertical cam - camOrigin cam)
+         t `mult` camVertical cam)
 

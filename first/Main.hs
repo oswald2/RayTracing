@@ -25,8 +25,8 @@ import           Camera
 import           Material
 
 
-nx = 800
-ny = 400
+nx = 200
+ny = 100
 ns = 100
 maxDepth = 50
 
@@ -36,42 +36,13 @@ values cam rand = map (inner cam rand) [ny - 1, ny - 2 .. 0]
 inner :: Camera -> PureMT -> Int -> [Color]
 inner cam rand j = map (calc cam rand j) [0 .. nx - 1]
 
-{-
 
--- example 1
-calc :: Int -> Int -> Color
-calc j i = mkColor (fromIntegral i / fromIntegral nx)
-                   (fromIntegral j / fromIntegral ny)
-                   0.2
--}
-{-}
-calc :: Camera -> PureMT -> Int -> Int -> Color
-calc cam rand j i =
-    let (v, _) = foldr calcVal (nullVector, rand) [1 .. ns]
-        v1     = v `divide` ns
-    in  mkColor (sqrt (vecX v1)) (sqrt (vecY v1)) (sqrt (vecZ v1))
-  where
-    calcVal _ (c0, ra0) =
-        let (v1, ra1)  = randomVal ra0
-            (v2, ra2)  = randomVal ra1
-            u          = (fromIntegral i + v1) / fromIntegral nx
-            v          = (fromIntegral j + v2) / fromIntegral ny
-            r          = camGetRay cam
-
-
-            let (randVec, ra1) = randomInUnitSphere rand
-                target         = htP ht + htNormal ht + randVec
-                (res, ra2)     = color ra1 (Ray (htP ht) (target - htP ht)) world
-            in  (0.4 `mult` res, ra2) u v
-            (col, ra3) = color ra2 r world
-        in  (c0 + col, ra3)
--}
 
 calc :: Camera -> PureMT -> Int -> Int -> Color
 calc cam rand j i =
-    let (v, _) = foldr calcVal (nullVector, rand) [1 .. ns]
-        v1     = v `divide` ns
-    in  mkColor (sqrt (vecX v1)) (sqrt (vecY v1)) (sqrt (vecZ v1))
+    let (v, _) = foldr calcVal (black, rand) [1 .. ns]
+        Color r g b = v <</>> ns
+    in  Color (sqrt r) (sqrt g) (sqrt b)
   where
     calcVal _ (c0, ra0) =
         let (v1, ra1)  = randomDouble ra0
@@ -82,157 +53,31 @@ calc cam rand j i =
             --p          = pointAtParameter r 2.0
 
             (col, ra3) = color ra2 r world 0
-        in  (c0 + col, ra3)
-
-
-{-
--- example 2
-color :: Ray -> Color
-color r =
-    let unitDirection = unitVector (direction r)
-        t = 0.5 * (vecY unitDirection + 1.0)
-
-        v1 = Vec3 1.0 1.0 1.0
-        v2 = Vec3 0.5 0.7 1.0
-        v3 = ((1.0 - t) `mult` v1) + (t `mult` v2)
-    in
-    mkColor (vecX v3) (vecY v3) (vecZ v3)
--}
-
-{-}
---example 3
-color :: Ray -> Color
-color r =
-    if hitSphere (Vec3 0.0 0.0 (-1.0)) 0.5 r 
-        then Color 255 0 0 
-        else
-            let unitDirection = unitVector (direction r)
-                t = 0.5 * (vecY unitDirection + 1.0)
-
-                v1 = Vec3 1.0 1.0 1.0
-                v2 = Vec3 0.5 0.7 1.0
-                v3 = ((1.0 - t) `mult` v1) + (t `mult` v2)
-            in
-                mkColor (vecX v3) (vecY v3) (vecZ v3)
-
-
-hitSphere :: Vec3 -> Double -> Ray -> Bool
-hitSphere !center !radius !r =
-    let oc = origin r - center
-        dirr = direction r
-        a = dot dirr dirr
-        b = 2.0 * dot oc dirr
-        c = dot oc oc - radius * radiu    , GlasgowExts
-s
-        discriminant = b * b - 4 * a * c
-    in
-    discriminant > 0
--}
-
-{-}
---example 3
-color :: Ray -> Color
-color r
-    = let t = hitSphere (Vec3 0.0 0.0 (-1.0)) 0.5 r
-      in
-          if t > 0.0
-              then
-                  let
-                      n = unitVector
-                          ((pointAtParameter r t) - (Vec3 0.0 0.0 -1.0))
-                      n1 =
-                          0.5 `mult` Vec3 (vecX n + 1) (vecY n + 1) (vecZ n + 1)
-                  in
-                      mkColor (vecX n1) (vecY n1) (vecZ n1)
-              else
-                  let unitDirection = unitVector (direction r)
-                      t             = 0.5 * (vecY unitDirection + 1.0)
-
-                      v1            = Vec3 1.0 1.0 1.0
-                      v2            = Vec3 0.5 0.7 1.0
-                      v3            = ((1.0 - t) `mult` v1) + (t `mult` v2)
-                  in  mkColor (vecX v3) (vecY v3) (vecZ v3)
-
-
-hitSphere :: Vec3 -> Double -> Ray -> Double
-hitSphere !center !radius !r =
-    let oc           = origin r - center
-        dirr         = direction r
-        a            = dot dirr dirr
-        b            = 2.0 * dot oc dirr
-        c            = dot oc oc - radius * radius
-        discriminant = b * b - 4 * a * c
-    in  if discriminant < 0 then -1.0 else (-b - sqrt discriminant) / (2.0 * a)
--}
-
-{-}
-
-
-        let (randVec, ra1) = randomInUnitSphere rand
-            target         = htP ht + htNormal ht + randVec
-            (res, ra2)     = color ra1 (Ray (htP ht) (target - htP ht)) world
-        in  (0.4 `mult` res, ra2)
--- example4
-color :: Hitable a => Ray -> a -> Vec3
-color r x = case hit x r 0.0 (maxr more details):
- - first-0.1.0.0 (exe:first) (configuration changNonInfiniteFloat 0) of
-    Just ht ->
-        let v = 0.5 `mult` Vec3 ((vecX (htNormal ht)) + 1)
-                                ((vecY (htNormal ht)) + 1)
-                                ((vecZ (htNormal ht)) + 1)
-        in  v
-    Nothing ->        Nothing -> (Vec3 0 0 0, rand)
-
-        let unitDirection = unitVector (direction r)
-            t             = 0.5 * (vecY unitDirection + 1.0)
-
-            v1            = Vec3 1.0 1.0 1.0
-            v2            = Vec3 0.5 0.7 1.0
-            v3            = ((1.0 - t) `mult` v1) + (t `mult` v2)
-        in  v3
--}
+        in  (c0 <<+>> col, ra3)
 
 
 
-
-{-r more details):
- - first-0.1.0.0 (exe:first) (configuration chang
--- example5
-color :: Hitable a => PureMT -> Ray -> a -> (Vec3, PureMT)
-color rand r x = case hit x r 0.001 (maxNonInfiniteFloat 0) of
-    Just ht ->
-        let (randVec, ra1) = randomInUnitSphere rand
-            target         = htP ht + htNormal ht + randVec
-            (res, ra2)     = color ra1 (Ray (htP ht) (target - htP ht)) world
-        in  (0.4 `mult` res, ra2)
-    Nothing ->
-        let unitDirection = unitVector (direction r)
-            t             = 0.5 * (vecY unitDirection + 1.0)
-
-            v1            = Vec3 1.0 1.0 1.0
-            v2            = Vec3 0.5 0.7 1.0
-            v3            = ((1.0 - t) `mult` v1) + (t `mult` v2)
-        in  (v3, rand)
--}
 
 -- example6
-color :: Hitable a => PureMT -> Ray -> a -> Int -> (Vec3, PureMT)
-color rand r x !depth = case hit x r 0.001 (maxNonInfiniteFloat 0) of
-    Just (ht, mat) -> if depth < maxDepth
-        then case scatter rand r ht mat of
-            Just (attenuation, scattered, rand1) ->
-                let (col, rand2) = color rand1 scattered world (depth + 1)
-                in  (attenuation * col, rand2)
-            Nothing -> (Vec3 0 0 0, rand)
-        else (Vec3 0 0 0, rand)
-    Nothing ->
-        let unitDirection = unitVector (direction r)
-            t             = 0.5 * (vecY unitDirection + 1.0)
+color :: Hitable a => PureMT -> Ray -> a -> Int -> (Color, PureMT)
+color rand rIn x !depth = 
+    case hit x rIn 0.001 (maxNonInfiniteFloat 0) of
+        Just (ht, mat) -> if depth < maxDepth
+            then case scatter rand rIn ht mat of
+                Just ((ScatterRecord attenuation scattered), rand1) ->
+                    let (Color r g b, rand2) = color rand1 scattered x (depth + 1)
+                        col = Color (r * vecX attenuation) (g * vecY attenuation) (b * vecZ attenuation)
+                    in  (col, rand2)
+                Nothing -> (Color 0 0 0, rand)
+            else (Color 0 0 0, rand)
+        Nothing ->
+            let unitDirection = unitVector (direction rIn)
+                t             = 0.5 * (vecY unitDirection + 1.0)
 
-            v1            = Vec3 1.0 1.0 1.0
-            v2            = Vec3 0.5 0.7 1.0
-            v3            = ((1.0 - t) `mult` v1) + (t `mult` v2)
-        in  (v3, rand)
+                v1            = Vec3 1.0 1.0 1.0
+                v2            = Vec3 0.5 0.7 1.0
+                v3            = ((1.0 - t) `mult` v1) + (t `mult` v2)
+            in  (vecToColor v3, rand)
 
 
 
@@ -265,23 +110,14 @@ world =
         (Sphere (Vec3 0 0 -1) 0.5 (Material (Lambertian (Vec3 0.8 0.3 0.3))))
     , HitObject
         (Sphere (Vec3 0 -100.5 -1) 100 (Material (Lambertian (Vec3 0.8 0.8 0))))
-    , HitObject
-        (Sphere (Vec3 1 0 -1) 0.5 (Material (Metal (Vec3 0.8 0.6 0.2) 0.0)))
-    , HitObject (Sphere (Vec3 -1 0 -1) 0.5 (Material (Dielectric 1.5)))
-    , HitObject (Sphere (Vec3 -1 0 -1) -0.45 (Material (Dielectric 1.5)))
+     , HitObject
+         (Sphere (Vec3 1 0 -1) 0.5 (Material (Metal (Vec3 0.8 0.6 0.2) 0.0)))
+     , HitObject
+         (Sphere (Vec3 -1 0 -1) 0.5 (Material (Metal (Vec3 0.8 0.8 0.8) 0.0)))
     ]
 
 
-{-
-world :: [HitObject]
-world
-    = let r = cos (pi / 4)
-      in  [ HitObject
-              (Sphere (Vec3 (-r) 0 -1) r (Material (Lambertian (Vec3 0 0 1))))
-          , HitObject
-              (Sphere (Vec3 r 0 -1) r (Material (Lambertian (Vec3 1 0 0))))
-          ]
--}
+
 
 camera = defaultCamera
 --camera = newCamera 90 (fromIntegral nx / fromIntegral ny)

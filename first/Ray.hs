@@ -8,8 +8,8 @@ import           Vector
 
 
 data Ray = Ray {
-    rayA :: !Vec3,
-    rayB :: !Vec3
+    rayOrigin :: !Vec3,
+    rayDirection :: !Vec3
 }
 
 

@@ -31,18 +31,21 @@ instance Hitable Sphere where
         in  
         if discriminant > 0 
             then 
-                let temp = (-b - sqrt discriminant) / a 
+                let temp1 = (-b - sqrt discriminant) / a 
                     temp2 = (-b + sqrt discriminant) / a
                     ht t = HitRecord t (p t) (norm t)
                     p t = pointAtParameter r t
                     norm t = (p t - center) `divide` radius
+                    b1 = t_min < temp1 && temp1 < t_max
+                    b2 = t_min < temp2 && temp2 < t_max
                 in
-                if temp < t_max && temp > t_min 
-                    then Just ((ht temp), material) 
+                if b1 || b2
+                    then 
+                        let t = if b1 then temp1 else temp2
+                        in 
+                            Just ((ht t), material) 
                     else
-                        if temp2 < t_max && temp2 > t_min 
-                            then Just ((ht temp2), material)
-                            else Nothing
+                        Nothing
             else
                 Nothing
 

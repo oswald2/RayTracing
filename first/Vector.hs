@@ -44,7 +44,7 @@ dot (Vec3 x1 y1 z1) (Vec3 x2 y2 z2) =
 cross :: Vec3 -> Vec3 -> Vec3
 cross (Vec3 x1 y1 z1) (Vec3 x2 y2 z2) = 
     Vec3 (y1 * z2 - z1 * y2)
-         (-(x1 * z2 - z1 * x2))
+         (z1 * x2 - z2 * x1)
          (x1 * y2 - y1 * x2)
     
 
