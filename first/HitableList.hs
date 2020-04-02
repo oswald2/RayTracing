@@ -20,8 +20,8 @@ instance Hitable [HitObject] where
         in
             res
         where
-            calc :: (Hitable a, HasMaterial a) => a -> (Maybe (HitRecord, Material), Double)
-                -> (Maybe (HitRecord, Material), Double)
+            calc :: (Hitable a, HasMaterial a) => a -> (Maybe (HitRecord, Material), Float)
+                -> (Maybe (HitRecord, Material), Float)
             calc x p@(_, closest_so_far) =
                 case hit x r t_min closest_so_far of
                     Just rec@(ht, _) -> (Just rec, htT ht)

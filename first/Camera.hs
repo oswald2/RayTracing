@@ -14,45 +14,45 @@ where
 
 
 
-import Vector
+import Data.Vec4
 import Ray
 
 
 data Camera = Camera {
-    camOrigin :: !Vec3,
-    camLowerLeftCorner :: !Vec3,
-    camHorizontal :: !Vec3,
-    camVertical :: !Vec3
+    camOrigin :: !Vec4,
+    camLowerLeftCorner :: !Vec4,
+    camHorizontal :: !Vec4,
+    camVertical :: !Vec4
 } deriving Show
 
 
 defaultCamera :: Camera
 defaultCamera = Camera {
-        camOrigin = Vec3 0 0 0,
-        camLowerLeftCorner = Vec3 -2 -1 -1,
-        camHorizontal = Vec3 4 0 0,
-        camVertical = Vec3 0 2 0
+        camOrigin = vec4 0 0 0 0,
+        camLowerLeftCorner = vec4 -2 -1 -1 0,
+        camHorizontal = vec4 4 0 0 0,
+        camVertical = vec4 0 2 0 0
     }
 
-newCamera :: Vec3 -> Vec3 -> Vec3 -> Double -> Double -> Camera
+newCamera :: Vec4 -> Vec4 -> Vec4 -> Float -> Float -> Camera
 newCamera lookfrom lookat vup vfov aspect = 
     let theta = vfov * pi / 180
         !halfHeight = tan (theta / 2.0)
         !halfWidth = aspect * halfHeight
-        w = unitVector (lookfrom - lookat)
-        u = unitVector (cross vup w)
-        v = cross w u
+        w = norm (lookfrom - lookat)
+        u = norm (crossp vup w)
+        v = crossp w u
     in
         Camera {
             camOrigin = lookfrom,
-            camLowerLeftCorner = lookfrom - (halfWidth `mult` u) - (halfHeight `mult` v) - w,
-            camHorizontal = 2 * halfWidth `mult` u,
-            camVertical = 2 * halfHeight `mult` v
+            camLowerLeftCorner = lookfrom - (halfWidth `mulScalar` u) - (halfHeight `mulScalar` v) - w,
+            camHorizontal = 2 * halfWidth `mulScalar` u,
+            camVertical = 2 * halfHeight `mulScalar` v
         }
 
-camGetRay :: Camera -> Double -> Double -> Ray 
+camGetRay :: Camera -> Float -> Float -> Ray 
 camGetRay cam s t =
     Ray (camOrigin cam) 
-        (camLowerLeftCorner cam + s `mult` camHorizontal cam + 
-         t `mult` camVertical cam)
+        (camLowerLeftCorner cam + s `mulScalar` camHorizontal cam + 
+         t `mulScalar` camVertical cam)
 

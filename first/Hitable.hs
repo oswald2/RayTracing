@@ -14,7 +14,7 @@ import Material
 
 
 class Hitable a where
-    hit :: a -> Ray -> Double -> Double -> Maybe (HitRecord, Material)
+    hit :: a -> Ray -> Float -> Float -> Maybe (HitRecord, Material)
 
 class HasMaterial a where
     material :: a -> Material

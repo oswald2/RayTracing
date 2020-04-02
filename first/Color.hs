@@ -10,10 +10,10 @@ import Data.Word
 import Data.Text.Lazy.Builder
 import Data.Text.Lazy.Builder.Int
 
-import Vector
+import Data.Vec4
 
 
-data Color = Color !Double !Double !Double
+data Color = Color !Float !Float !Float
 
 
 black :: Color
@@ -24,8 +24,9 @@ white = Color 1 1 1
 
 
 
-mkColor :: Double -> Double -> Double -> Color
-mkColor red green blue = Color red green blue
+mkColor :: Float -> Float -> Float -> Color
+mkColor = Color 
+
 -- mkColor red green blue = Color (truncate (red * 255.99))
 --                                (truncate (green * 255.99))
 --                                (truncate (blue * 255.99))
@@ -33,7 +34,7 @@ mkColor red green blue = Color red green blue
 colorToBuilder :: Color -> Builder 
 colorToBuilder (Color r g b) =
     let sp = singleton ' '
-        to8 :: Double -> Word8
+        to8 :: Float -> Word8
         to8 x = truncate (x * 255.9)
         ri = to8 r
         gi = to8 g
@@ -41,16 +42,18 @@ colorToBuilder (Color r g b) =
     in
     decimal ri <> sp <> decimal gi <> sp <> decimal bi <> singleton '\n'
 
-vecToColor :: Vec3 -> Color
-vecToColor v = mkColor (vecX v) (vecY v) (vecZ v)
+vecToColor :: Vec4 -> Color
+vecToColor v = 
+    let (x, y, z, _) = unpack v 
+    in mkColor x y z
 
 (<<+>>) :: Color -> Color -> Color
 Color r1 g1 b1 <<+>> Color r2 g2 b2 = Color (r1 + r2) (g1 + g2) (b1 + b2)
 
-(<<*>>) :: Double -> Color -> Color
+(<<*>>) :: Float -> Color -> Color
 t <<*>> Color r g b = Color (t * r) (t * g) (t * b)
 
-(<</>>) :: Color -> Double -> Color
+(<</>>) :: Color -> Float -> Color
 Color r g b <</>> t = Color (r / t) (g / t) (b / t)
 
 

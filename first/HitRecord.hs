@@ -3,13 +3,13 @@ where
 
 
 
-import Vector
+import Data.Vec4
 
 
 
 data HitRecord = HitRecord {
-    htT :: !Double,
-    htP :: !Vec3,
-    htNormal :: !Vec3
+    htT :: !Float,
+    htP :: !Vec4,
+    htNormal :: !Vec4
 }
 

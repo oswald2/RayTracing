@@ -9,20 +9,20 @@ module Material where
 
 import           Ray
 import           HitRecord
-import           Vector
+import           Data.Vec4
 import           Utils
 
-import           System.Random.Mersenne.Pure64
+import           System.Random.SplitMix
 
 
 data ScatterRecord = ScatterRecord {
-    srAttenuation :: Vec3
+    srAttenuation :: Vec4
     , srScattered :: Ray
 }
 
 
 class MaterialC a where
-    scatter :: PureMT -> Ray -> HitRecord -> a -> Maybe (ScatterRecord, PureMT)
+    scatter :: SMGen -> Ray -> HitRecord -> a -> Maybe (ScatterRecord, SMGen)
 
 
 data Material = forall a. MaterialC a => Material a
@@ -39,7 +39,7 @@ instance MaterialC Material where
 
 
 
-data MaterialLambertian = Lambertian { lambAlbedo :: !Vec3 {-, lambRoughness :: !Double-} }
+data MaterialLambertian = Lambertian { lambAlbedo :: !Vec4 {-, lambRoughness :: !Double-} }
 
 instance MaterialC MaterialLambertian where
     -- scatter rand rIn hitRecord Lambertian {..} =
@@ -63,7 +63,7 @@ instance MaterialC MaterialLambertian where
 
     
 
-data MaterialMetal = Metal {metalAlbedo :: !Vec3, metalFuzz :: !Double }        
+data MaterialMetal = Metal {metalAlbedo :: !Vec4, metalFuzz :: !Float }        
 
 instance MaterialC MaterialMetal where
     -- scatter rand r ht Metal {..} = 
@@ -77,28 +77,28 @@ instance MaterialC MaterialMetal where
     --             -- else Nothing
     --             else Just (attenuation, scattered, rand1)
     scatter rand rIn hitRecord Metal {..} = 
-        let reflected = reflect (unitVector (direction rIn)) (htNormal hitRecord)
+        let reflected = reflect (norm (direction rIn)) (htNormal hitRecord)
             --(v1, rand1) = randomInUnitSphere rand
             scattered = Ray (htP hitRecord) (reflected {-+ metalFuzz `mult` v1-})
         in
-            if dot (direction scattered) (htNormal hitRecord) > 0 
+            if dotp (direction scattered) (htNormal hitRecord) > 0 
                 then Just ((ScatterRecord metalAlbedo scattered), rand)
                 else Nothing
                 
 
 
-reflect :: Vec3 -> Vec3 -> Vec3
-reflect !v !n = v - 2 * dot v n `mult` n
+reflect :: Vec4 -> Vec4 -> Vec4
+reflect !v !n = v - 2 * dotp v n `mulScalar` n
 
 
-refract :: Vec3 -> Vec3 -> Double -> Maybe Vec3
+refract :: Vec4 -> Vec4 -> Float -> Maybe Vec4
 refract !v !n !ni_over_nt =
-    let uv = unitVector v
-        dt = dot uv n
+    let uv = norm v
+        dt = dotp uv n
         discriminant = 1.0 - ni_over_nt * ni_over_nt * (1 - dt * dt)
     in
     if discriminant > 0 
-        then Just (ni_over_nt `mult` (uv - dt `mult` uv) - sqrt discriminant `mult` n)
+        then Just (ni_over_nt `mulScalar` (uv - dt `mulScalar` uv) - sqrt discriminant `mulScalar` n)
         else Nothing
 
 

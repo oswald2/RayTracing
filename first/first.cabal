@@ -30,8 +30,9 @@ executable first
   -- other-extensions:
   build-depends:       base >=4.11
     , text
-    , mersenne-random-pure64
+    , splitmix
+    , simd-vector
 
   -- hs-source-dirs:
   default-language:    Haskell2010
-  ghc-options: -O2 -W -funbox-strict-fields -fllvm
+  ghc-options: -O2 -W -funbox-strict-fields -fllvm -optlo-O3 -freverse-errors

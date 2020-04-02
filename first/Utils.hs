@@ -1,21 +1,19 @@
 module Utils where
 
 
-import           Vector
+import           Data.Vec4
 
-import           System.Random.Mersenne.Pure64
+import           System.Random.SplitMix
 
 
-randomInUnitSphere :: PureMT -> (Vec3, PureMT)
-randomInUnitSphere rand = worker rand
+randomInUnitSphere :: SMGen -> (Vec4, SMGen)
+randomInUnitSphere = worker
   where
     worker r0 =
-        let (v1, r1) = randomDouble r0
-            (v2, r2) = randomDouble r1
-            (v3, r3) = randomDouble r2
+        let (v1, r1) = random r0 
 
-            p        = 2.0 `mult` Vec3 v1 v2 v3 - Vec3 1 1 1
-        in  if squared_length p >= 1.0 then worker r3 else (p, r3)
+            p        = 2.0 `mulScalar` v1 - vec4 1 1 1 0
+        in  if magn2 p >= 1.0 then worker r1 else (p, r1)
 
 
 saturate :: Double -> Double
